@@ -29,10 +29,14 @@ using namespace linalg;
 using namespace operators;
 using namespace stats;
 
+#ifdef USE_CATALYST
+#include "CatalystAdaptor.h"
+#endif
+
 // read command line arguments
 static void readcmdline(Discretization& options, int argc, char* argv[])
 {
-    if (argc<5 || argc>6 ) {
+    if (argc<5 || argc>7 ) {
         std::cerr << "Usage: main nx ny nt t\n";
         std::cerr << "  nx  number of gridpoints in x-direction\n";
         std::cerr << "  ny  number of gridpoints in y-direction\n";
@@ -162,12 +166,18 @@ int main(int argc, char* argv[])
     }
 
     // TODO : ensure that the gpu copy of x_new has the up to date values that were just created
+    x_new.update_device();
 
     flops_bc = 0;
     flops_diff = 0;
     flops_blas1 = 0;
     iters_cg = 0;
     iters_newton = 0;
+
+#ifdef USE_CATALYST
+    CatalystAdaptor::InitializeCatalyst(argv[6]);
+    CatalystAdaptor::CreateConduitNode(x_new.device_data(), nx, ny);
+#endif
 
     // start timer
     double timespent = -omp_get_wtime();
@@ -206,6 +216,13 @@ int main(int argc, char* argv[])
         }
         iters_newton += it+1;
 
+        if(!(timestep % 10))
+          {
+#ifdef USE_CATALYST
+          CatalystAdaptor::Execute(timestep, 0.01);
+#endif
+          }
+          
         // output some statistics
         if (converged && verbose_output) {
             std::cout << "step " << timestep
@@ -222,6 +239,10 @@ int main(int argc, char* argv[])
 
     // get times
     timespent += omp_get_wtime();
+
+#ifdef USE_CATALYST
+    CatalystAdaptor::Finalize();
+#endif
 
     ////////////////////////////////////////////////////////////////////
     // write final solution to BOV file for visualization
