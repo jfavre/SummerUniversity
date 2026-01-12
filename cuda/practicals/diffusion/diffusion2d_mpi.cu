@@ -21,6 +21,14 @@
 
 void write_to_file(int nx, int ny, double* data, int mpi_size, int mpi_rank);
 
+#ifdef USE_CATALYST
+#include "CatalystAdaptor.h"
+#endif
+
+#ifdef USE_ASCENT
+#include "AscentAdaptor.h"
+#endif
+
 template <typename T>
 void fill_gpu(T *v, T value, int n);
 
@@ -117,6 +125,19 @@ int main(int argc, char** argv) {
     auto recv_buffer = malloc_pinned<double>(nx);
     auto send_buffer = malloc_pinned<double>(nx);
 
+#ifdef USE_ASCENT
+#ifdef ASCENT_CUDA_ENABLED
+    AscentAdaptor::Initialize(x1, nx, ny, mpi_rank);
+#else
+    AscentAdaptor::Initialize(x_host, nx, ny);
+#endif
+#endif
+
+#ifdef USE_CATALYST
+    CatalystAdaptor::InitializeCatalyst(argv[3]);
+    CatalystAdaptor::CreateConduitNode(x1, nx, ny, mpi_rank);
+#endif
+
     // time stepping loop
     for(auto step=0; step<nsteps; ++step) {
 
@@ -149,10 +170,27 @@ int main(int argc, char** argv) {
             }
         }
         diffusion<<<grid_dim, block_dim>>>(x0, x1, nx, ny, dt);
-
+        if(!(step % 2000))
+          {
+#ifdef USE_ASCENT
+#ifndef ASCENT_CUDA_ENABLED
+          copy_to_host<double>(x1, x_host, buffer_size); // use x1 with most recent result
+#endif
+          AscentAdaptor::Execute(step, dt);
+#endif
+#ifdef USE_CATALYST
+          CatalystAdaptor::Execute(step, dt);
+#endif
+          }
         std::swap(x0, x1);
     }
     auto stop_event = stream.enqueue_event();
+#ifdef USE_ASCENT
+    AscentAdaptor::Finalize();
+#endif
+#ifdef USE_CATALYST
+    CatalystAdaptor::Finalize();
+#endif
     stop_event.wait();
 
     copy_to_host<double>(x0, x_host, buffer_size);

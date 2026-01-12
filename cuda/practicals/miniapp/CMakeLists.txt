@@ -20,7 +20,7 @@ target_sources(miniapp
     linalg.cu
     main.cu
 )
-set_target_properties(miniapp PROPERTIES CUDA_ARCHITECTURES "90")
+set_target_properties(miniapp PROPERTIES CUDA_ARCHITECTURES "native")
 
 set(INSITU None CACHE STRING "Enable in-situ support")
 set_property(CACHE INSITU PROPERTY STRINGS None Catalyst Ascent VTK-m Viskores)
