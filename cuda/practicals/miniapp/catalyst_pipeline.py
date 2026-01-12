@@ -77,14 +77,14 @@ readerDisplay.SetScalarBarVisibility(renderView1, True)
 
 pNG1 = CreateExtractor('PNG', renderView1, registrationName='PNG1')
 pNG1.Trigger = 'TimeStep'
-pNG1.Trigger.Frequency = 1
+pNG1.Trigger.Frequency = 100
 pNG1.Writer.FileName = 'Temperature-Catalyst.{timestep:05d}{camera}.png'
 pNG1.Writer.ImageResolution = ImageResolution
 pNG1.Writer.Format = 'PNG'
 
 vTP1 = CreateExtractor('VTPD', reader, registrationName='VTPD1')
 vTP1.Trigger = 'TimeStep'
-vTP1.Trigger.Frequency = 100
+vTP1.Trigger.Frequency = 1000
 vTP1.Writer.FileName = 'dataset_{timestep:06d}.vtpd'
 
 # Catalyst options

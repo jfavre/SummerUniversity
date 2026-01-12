@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project (miniapp CUDA CXX)
+project (miniapp CUDA C CXX)
 
 include (GNUInstallDirs)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}")
@@ -20,7 +20,7 @@ target_sources(miniapp
     linalg.cu
     main.cu
 )
-set_target_properties(miniapp PROPERTIES CUDA_ARCHITECTURES "86")
+set_target_properties(miniapp PROPERTIES CUDA_ARCHITECTURES "90")
 
 set(INSITU None CACHE STRING "Enable in-situ support")
 set_property(CACHE INSITU PROPERTY STRINGS None Catalyst Ascent VTK-m Viskores)
