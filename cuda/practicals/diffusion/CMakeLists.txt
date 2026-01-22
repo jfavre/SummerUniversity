@@ -38,7 +38,7 @@ set_property(CACHE INSITU PROPERTY STRINGS None Catalyst Ascent VTK-m Viskores)
 
 if(INSITU STREQUAL "None")
   target_link_libraries(diffusion2d PRIVATE cublas cudart)
-  target_link_libraries(diffusion2d_mpi PRIVATE cublas cudart)
+  target_link_libraries(diffusion2d_mpi MPI::MPI_CXX cublas cudart)
 elseif(INSITU STREQUAL "Catalyst")
   find_package(catalyst REQUIRED PATHS "${EBROOTCATALYST}/lib/cmake/catalyst-2.0")
   target_compile_definitions(diffusion2d PUBLIC USE_CATALYST=1)
