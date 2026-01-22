@@ -14,12 +14,9 @@ ImageResolution = [1024,1024]
 renderView1 = CreateView('RenderView')
 renderView1.Set(
   ViewSize = ImageResolution,
-  #CenterOfRotation = [0.5, 0.5, 0.0],
-  #CameraPosition =   [0.5, 0.5, 2.5],
-  #CameraFocalPoint = [0.5, 0.5, 0.0],
-  CenterOfRotation=[0.5, 1.0, 0.0],
-  CameraPosition=[0.5, 1.0, 4.25],
-  CameraFocalPoint=[0.5, 1.0, 0.0],
+  CenterOfRotation = [0.5, 0.5, 0.0],
+  CameraPosition =   [0.5, 0.5, 2.5],
+  CameraFocalPoint = [0.5, 0.5, 0.0],
   CameraFocalDisk = 1.0,
   CameraParallelScale = 0.6326744773387929,
   OrientationAxesVisibility = 0,
@@ -35,52 +32,32 @@ contour1.Set(
   PointMergeMethod = 'Uniform Binning',
   )
 
-readerDisplay = Show(reader, renderView1, 'UniformGridRepresentation')
+processIds1 = ProcessIds(registrationName='ProcessIds1', Input=contour1)
+processIds1Display = Show(processIds1)
 
-# get color transfer function/color map for 'temperature'
-temperatureLUT = GetColorTransferFunction('temperature')
-temperatureLUT.ScalarRangeInitialized = 1.0
+ColorBy(processIds1Display , ['POINTS', 'PointProcessIds'])
+
+readerDisplay = Show(reader, renderView1, 'UniformGridRepresentation')
 
 # trace defaults for the display properties.
 readerDisplay.Set(
-  #Representation = 'Surface With Edges',
-  Representation = 'Surface',
-  ColorArrayName = ['POINTS', 'temperature'],
-  LookupTable = temperatureLUT,
-  )
-# show data from contour1
-contour1Display = Show(contour1)
-contour1Display.Set(
-  Representation = 'Surface',
+  Representation = 'Outline',
   ColorArrayName = ['POINTS', ''],
   )
-
-# init the 'Piecewise Function' selected for 'ScaleTransferFunction'
-contour1Display.ScaleTransferFunction.Points = [0.25, 0.0, 0.5, 0.0, 0.75, 1.0, 0.5, 0.0]
-
-# init the 'Piecewise Function' selected for 'OpacityTransferFunction'
-contour1Display.OpacityTransferFunction.Points = [0.25, 0.0, 0.5, 0.0, 0.75, 1.0, 0.5, 0.0]
-
-# setup the color legend parameters for each legend in this view
-
-# get color legend/bar for temperatureLUT in view renderView1
-temperatureLUTColorBar = GetScalarBar(temperatureLUT, renderView1)
-temperatureLUTColorBar.Title = 'temperature'
-temperatureLUTColorBar.ComponentTitle = ''
-temperatureLUTColorBar.Visibility = 1
-temperatureLUTColorBar.Set(
-    Orientation='Horizontal',
-    WindowLocation='Any Location',
-    Position=[0.6, 0.025],
-    ScalarBarLength=0.333,
+pointProcessIdsLUT = GetColorTransferFunction('PointProcessIds')
+pointProcessIdsLUTColorBar = GetScalarBar(pointProcessIdsLUT, renderView1)
+pointProcessIdsLUTColorBar.Set(
+    WindowLocation='Upper Right Corner',
+    Title='PointProcessIds',
 )
 
-# show color legend
-readerDisplay.SetScalarBarVisibility(renderView1, True)
+# set color bar visibility
+pointProcessIdsLUTColorBar.Visibility = 1
+processIds1Display.SetScalarBarVisibility(renderView1, True)
 
 pNG1 = CreateExtractor('PNG', renderView1, registrationName='PNG1')
 pNG1.Trigger = 'TimeStep'
-pNG1.Trigger.Frequency = 1000
+pNG1.Trigger.Frequency = 10000
 pNG1.Writer.FileName = 'Temperature-Catalyst.{timestep:05d}{camera}.png'
 pNG1.Writer.ImageResolution = ImageResolution
 pNG1.Writer.Format = 'PNG'

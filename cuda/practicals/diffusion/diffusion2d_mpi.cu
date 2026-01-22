@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     size_t nsteps = read_arg(argc, argv, 2, 100);
 
     // set domain size
-    size_t nx = 128;
+    size_t nx = 1 << pow;
     size_t ny = 1 << pow;
     double dt = 0.1;
 
@@ -170,7 +170,6 @@ int main(int argc, char** argv) {
             }
         }
         diffusion<<<grid_dim, block_dim>>>(x0, x1, nx, ny, dt);
-        if(!(step % 2000))
           {
 #ifdef USE_ASCENT
 #ifndef ASCENT_CUDA_ENABLED
